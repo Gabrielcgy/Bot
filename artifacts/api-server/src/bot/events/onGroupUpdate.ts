@@ -9,6 +9,12 @@ interface GroupUpdateEvent {
   action: string;
 }
 
+function applyTemplate(template: string, user: string, group: string): string {
+  return template
+    .replace(/\{user\}/g, user)
+    .replace(/\{group\}/g, group);
+}
+
 export async function onGroupUpdate(
   sock: WASocket,
   update: GroupUpdateEvent,
@@ -17,36 +23,33 @@ export async function onGroupUpdate(
 
   try {
     const settings = getGroupSettings(groupId);
+    const meta = await sock.groupMetadata(groupId);
+    const groupName = meta.subject;
 
     if (action === "add" && settings.welcomeEnabled) {
-      const meta = await sock.groupMetadata(groupId);
-      const groupName = meta.subject;
-
       for (const participant of participants) {
         const jid = normalizeJid(participant.id);
         const number = jid.split("@")[0];
+        const text = applyTemplate(settings.welcomeText, number, groupName);
 
         await sock.sendMessage(groupId, {
-          text:
-            `👋 ¡Bienvenido/a al grupo *${groupName}*, @${number}! 🎉\n\n` +
-            `Esperamos que disfrutes tu estadía. Recuerda leer las reglas del grupo.`,
+          text,
           mentions: [jid],
         });
-
         logger.info({ groupId, participant: jid }, "Bienvenida enviada");
       }
     }
 
-    if (action === "remove" && settings.welcomeEnabled) {
+    if (action === "remove" && settings.goodbyeEnabled) {
       for (const participant of participants) {
         const jid = normalizeJid(participant.id);
         const number = jid.split("@")[0];
+        const text = applyTemplate(settings.byeText, number, groupName);
 
         await sock.sendMessage(groupId, {
-          text: `👋 @${number} ha salido del grupo. ¡Hasta pronto!`,
+          text,
           mentions: [jid],
         });
-
         logger.info({ groupId, participant: jid }, "Despedida enviada");
       }
     }
