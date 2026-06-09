@@ -1,16 +1,30 @@
 import type { Command } from "./types.js";
-import { setGroupSettings } from "../state.js";
+import { getGroupSettings } from "../state.js";
+import { getMentioned, normalizeJid } from "../utils/index.js";
 
 export const mute: Command = {
   name: "mute",
-  description: "Silencia el bot en este grupo",
-  usage: "mute",
+  description: "Silencia a un usuario (borra sus mensajes automáticamente)",
+  usage: "mute @usuario",
   adminOnly: true,
   groupOnly: true,
-  async execute({ sock, from }) {
-    setGroupSettings(from, { muted: true });
+  async execute({ sock, from, msg }) {
+    const mentioned = getMentioned(msg).map(normalizeJid);
+    if (!mentioned.length) {
+      await sock.sendMessage(from, {
+        text: "❌ Etiqueta a quien quieres silenciar. Ej: .mute @usuario",
+      });
+      return;
+    }
+    const settings = getGroupSettings(from);
+    const added: string[] = [];
+    for (const jid of mentioned) {
+      settings.mutedUsers.add(jid);
+      added.push(`@${jid.split("@")[0]}`);
+    }
     await sock.sendMessage(from, {
-      text: "🔇 Bot silenciado. No responderé mensajes en este grupo.\nUsa *.unmute* para reactivarme.",
+      text: `🔇 ${added.join(", ")} silenciado(s). Sus mensajes serán eliminados automáticamente.\nUsa *.unmute @usuario* para reactivarlos.`,
+      mentions: mentioned,
     });
   },
 };

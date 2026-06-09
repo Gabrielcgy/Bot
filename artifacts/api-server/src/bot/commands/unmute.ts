@@ -1,16 +1,35 @@
 import type { Command } from "./types.js";
-import { setGroupSettings } from "../state.js";
+import { getGroupSettings } from "../state.js";
+import { getMentioned, normalizeJid } from "../utils/index.js";
 
 export const unmute: Command = {
   name: "unmute",
-  description: "Reactiva el bot en este grupo",
-  usage: "unmute",
+  description: "Reactiva a un usuario silenciado",
+  usage: "unmute @usuario",
   adminOnly: true,
   groupOnly: true,
-  async execute({ sock, from }) {
-    setGroupSettings(from, { muted: false });
-    await sock.sendMessage(from, {
-      text: "🔊 ¡Bot reactivado! Estoy escuchando de nuevo.",
-    });
+  async execute({ sock, from, msg }) {
+    const mentioned = getMentioned(msg).map(normalizeJid);
+    if (!mentioned.length) {
+      await sock.sendMessage(from, {
+        text: "❌ Etiqueta a quien quieres reactivar. Ej: .unmute @usuario",
+      });
+      return;
+    }
+    const settings = getGroupSettings(from);
+    const removed: string[] = [];
+    const notFound: string[] = [];
+    for (const jid of mentioned) {
+      if (settings.mutedUsers.has(jid)) {
+        settings.mutedUsers.delete(jid);
+        removed.push(`@${jid.split("@")[0]}`);
+      } else {
+        notFound.push(`@${jid.split("@")[0]}`);
+      }
+    }
+    let text = "";
+    if (removed.length) text += `🔊 ${removed.join(", ")} reactivado(s).\n`;
+    if (notFound.length) text += `⚠️ ${notFound.join(", ")} no estaba(n) silenciado(s).`;
+    await sock.sendMessage(from, { text: text.trim(), mentions: mentioned });
   },
 };

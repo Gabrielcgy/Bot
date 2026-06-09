@@ -49,15 +49,25 @@ export async function onMessage(
       const settings = isGroup ? getGroupSettings(from) : null;
 
       if (isGroup && settings) {
-        // ── Muted check ─────────────────────────────────────────
-        if (settings.muted && !body.startsWith(PREFIX)) continue;
-
         try {
           const meta = await sock.groupMetadata(from);
           isAdmin = meta.participants.some(
             (p) => normalizeJid(p.id) === sender && p.admin != null,
           );
         } catch { /* ignore */ }
+
+        // ── Usuario silenciado ─────────────────────────────────
+        if (settings.mutedUsers.has(sender) && !isAdmin && !isOwner) {
+          await sock.sendMessage(from, {
+            delete: {
+              remoteJid: from,
+              id: key.id!,
+              participant: key.participant ?? undefined,
+              fromMe: false,
+            },
+          });
+          continue;
+        }
 
         // ── Anti-link ──────────────────────────────────────────
         if (settings.antilinkEnabled && !isAdmin && !isOwner && LINK_REGEX.test(body)) {

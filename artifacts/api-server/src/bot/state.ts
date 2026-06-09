@@ -10,7 +10,7 @@ interface GroupSettings {
   antiimageEnabled: boolean;
   antivideoEnabled: boolean;
   autoreplyEnabled: boolean;
-  muted: boolean;
+  mutedUsers: Set<string>;
   locked: boolean;
   autoResponses: Map<string, string>;
   spamTracker: Map<string, { count: number; lastTime: number }>;
@@ -28,7 +28,7 @@ const defaults = (): GroupSettings => ({
   antiimageEnabled: false,
   antivideoEnabled: false,
   autoreplyEnabled: true,
-  muted: false,
+  mutedUsers: new Set<string>(),
   locked: false,
   autoResponses: new Map(),
   spamTracker: new Map(),
