@@ -1,4 +1,4 @@
-modules = ["nodejs-20"]
+modules = ["nodejs-24"]
 
 [deployment]
 router = "application"
@@ -18,21 +18,3 @@ expertMode = true
 [postMerge]
 path = "scripts/post-merge.sh"
 timeoutMs = 20000
-
-[[ports]]
-localPort = 8080
-externalPort = 8080
-
-[[ports]]
-localPort = 8081
-externalPort = 80
-
-[nix]
-channel = "stable-25_05"
-
-[userenv]
-
-[userenv.shared]
-WA_PHONE_NUMBER = "595973282151"
-
-git remote add github https://Gabrielcgy:$(echo $GITHUB_PERSONAL_ACCESS_TOKEN)@github.com/Gabrielcgy/nodex-bot.git && git push github main
