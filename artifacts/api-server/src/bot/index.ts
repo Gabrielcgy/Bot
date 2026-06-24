@@ -140,6 +140,18 @@ async function connect(): Promise<void> {
     await onGroupUpdate(sock, update);
   });
 
+  // ── Keepalive: envía presencia cada 4 min para que WhatsApp no cierre la sesión ──
+  const keepaliveTimer = setInterval(async () => {
+    if (connectionState.status !== "connected") return;
+    try {
+      await sock.sendPresenceUpdate("available");
+      connectionState.lastActivityMs = Date.now();
+    } catch {
+      // silencioso — si falla no importa, el watchdog lo maneja
+    }
+  }, 4 * 60_000);
+  keepaliveTimer.unref();
+
   if (!state.creds.registered) {
     const phone = process.env["WA_PHONE_NUMBER"]!;
     logger.info({ phone }, "📱 Solicitando código de emparejamiento...");
