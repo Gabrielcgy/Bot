@@ -1,5 +1,5 @@
 import type { Command } from "./types.js";
-import { getGroupSettings } from "../state.js";
+import { getGroupSettings, saveState } from "../state.js";
 import { getMentioned, normalizeJid } from "../utils/index.js";
 
 export const unmute: Command = {
@@ -27,6 +27,7 @@ export const unmute: Command = {
         notFound.push(`@${jid.split("@")[0]}`);
       }
     }
+    if (removed.length) saveState();
     let text = "";
     if (removed.length) text += `🔊 ${removed.join(", ")} reactivado(s).\n`;
     if (notFound.length) text += `⚠️ ${notFound.join(", ")} no estaba(n) silenciado(s).`;
