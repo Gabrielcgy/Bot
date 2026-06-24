@@ -1,5 +1,5 @@
 import type { Command } from "./types.js";
-import { getGroupSettings } from "../state.js";
+import { getGroupSettings, saveState } from "../state.js";
 import { getMentioned, normalizeJid } from "../utils/index.js";
 
 export const mute: Command = {
@@ -22,6 +22,7 @@ export const mute: Command = {
       settings.mutedUsers.add(jid);
       added.push(`@${jid.split("@")[0]}`);
     }
+    saveState();
     await sock.sendMessage(from, {
       text: `🔇 ${added.join(", ")} silenciado(s). Sus mensajes serán eliminados automáticamente.\nUsa *.unmute @usuario* para reactivarlos.`,
       mentions: mentioned,
