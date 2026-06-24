@@ -8,6 +8,7 @@ import { logger } from "../lib/logger.js";
 import { onMessage } from "./events/onMessage.js";
 import { onGroupUpdate } from "./events/onGroupUpdate.js";
 import { connectionState } from "./connectionState.js";
+import { dashboardState } from "./dashboardState.js";
 
 const MIN_RECONNECT_DELAY = 5_000;
 const MAX_RECONNECT_DELAY = 60_000;
@@ -90,6 +91,8 @@ async function connect(): Promise<void> {
       connectionState.connectedAt = new Date();
       connectionState.reconnectAttempts = 0;
       isReconnecting = false;
+      dashboardState.needsPairing = false;
+      dashboardState.pairingCode = null;
       logger.info("[OK] ✅ KILLERCG ONLINE — Conectado a WhatsApp");
     }
 
@@ -107,6 +110,8 @@ async function connect(): Promise<void> {
           { statusCode },
           "[WARN] ⚠️  Sesión cerrada por WhatsApp — borrando auth y pidiendo nuevo código...",
         );
+        dashboardState.needsPairing = true;
+        dashboardState.pairingCode = null;
         // resetAuth=true: borra ./auth y vuelve a conectar con pairing code nuevo
         scheduleReconnect("logged-out", true);
       } else if (statusCode === 429) {
@@ -158,10 +163,13 @@ async function connect(): Promise<void> {
     setTimeout(async () => {
       try {
         const code = await sock.requestPairingCode(phone);
+        dashboardState.pairingCode = code;
+        dashboardState.pairingCodeGeneratedAt = Date.now();
+        dashboardState.needsPairing = true;
         logger.info(
           `\n\n╔══════════════════════════════╗\n║  🔑 CÓDIGO DE EMPAREJAMIENTO  ║\n╠══════════════════════════════╣\n║  ${code}  ║\n╚══════════════════════════════╝\n`,
         );
-        logger.info({ code }, "🔑 Código de emparejamiento listo");
+        logger.info({ code }, "🔑 Código de emparejamiento listo — también visible en /panel");
       } catch (err) {
         logger.error({ err }, "[ERROR] al solicitar código de emparejamiento");
       }
