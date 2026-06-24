@@ -1,5 +1,5 @@
 import type { Command } from "./types.js";
-import { getGroupSettings, globalAutoResponses } from "../state.js";
+import { getGroupSettings, globalAutoResponses, saveState } from "../state.js";
 
 export const autoresponse: Command = {
   name: "autoresponse",
@@ -31,6 +31,7 @@ export const autoresponse: Command = {
         return;
       }
       responses.set(trigger, reply);
+      saveState();
       await sock.sendMessage(from, {
         text: `✅ Auto-respuesta añadida:\n*${trigger}* => _${reply}_`,
       });
@@ -47,6 +48,7 @@ export const autoresponse: Command = {
       }
       if (responses.has(trigger)) {
         responses.delete(trigger);
+        saveState();
         await sock.sendMessage(from, {
           text: `🗑️ Auto-respuesta *${trigger}* eliminada.`,
         });
