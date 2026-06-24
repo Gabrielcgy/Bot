@@ -15,9 +15,15 @@ export const promote: Command = {
       });
       return;
     }
-    await sock.groupParticipantsUpdate(from, mentioned, "promote");
-    await sock.sendMessage(from, {
-      text: `⬆️ ${mentioned.length} usuario(s) promovido(s) a admin.`,
-    });
+    try {
+      await sock.groupParticipantsUpdate(from, mentioned, "promote");
+      await sock.sendMessage(from, {
+        text: `⬆️ ${mentioned.length} usuario(s) promovido(s) a admin.`,
+      });
+    } catch {
+      await sock.sendMessage(from, {
+        text: "⚠️ No se pudo promover. ¿El bot tiene permisos de administrador?",
+      });
+    }
   },
 };
