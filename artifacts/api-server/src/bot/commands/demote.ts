@@ -15,9 +15,15 @@ export const demote: Command = {
       });
       return;
     }
-    await sock.groupParticipantsUpdate(from, mentioned, "demote");
-    await sock.sendMessage(from, {
-      text: `⬇️ ${mentioned.length} usuario(s) quitado(s) del admin.`,
-    });
+    try {
+      await sock.groupParticipantsUpdate(from, mentioned, "demote");
+      await sock.sendMessage(from, {
+        text: `⬇️ ${mentioned.length} usuario(s) quitado(s) del admin.`,
+      });
+    } catch {
+      await sock.sendMessage(from, {
+        text: "⚠️ No se pudo quitar el admin. ¿El bot tiene permisos?",
+      });
+    }
   },
 };
