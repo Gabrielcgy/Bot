@@ -56,3 +56,13 @@ echo ""
 echo "Luego en WhatsApp:"
 echo "  ⚙️ Ajustes → Dispositivos vinculados → Vincular con número → ingresá el código"
 echo ""
+
+# ── Activar wakelock para que Android no mate Termux ─────────────────────
+echo "🔒 Activando wakelock (evita que Android mate el bot)..."
+termux-wake-lock 2>/dev/null && echo "✅ Wakelock activado." || echo "⚠️  Instala termux-api: pkg install termux-api"
+
+# ── Agregar pm2 resurrect al bashrc ──────────────────────────────────────
+if ! grep -q "pm2 resurrect" ~/.bashrc 2>/dev/null; then
+  echo 'pm2 resurrect 2>/dev/null' >> ~/.bashrc
+  echo "✅ PM2 auto-start agregado a .bashrc"
+fi
