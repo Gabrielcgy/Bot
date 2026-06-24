@@ -15,9 +15,15 @@ export const kick: Command = {
       });
       return;
     }
-    await sock.groupParticipantsUpdate(from, mentioned, "remove");
-    await sock.sendMessage(from, {
-      text: `✅ ${mentioned.length} usuario(s) expulsado(s).`,
-    });
+    try {
+      await sock.groupParticipantsUpdate(from, mentioned, "remove");
+      await sock.sendMessage(from, {
+        text: `✅ ${mentioned.length} usuario(s) expulsado(s).`,
+      });
+    } catch {
+      await sock.sendMessage(from, {
+        text: "⚠️ No se pudo expulsar. ¿El bot tiene permisos de administrador?",
+      });
+    }
   },
 };
